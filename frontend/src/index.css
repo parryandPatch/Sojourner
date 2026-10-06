@@ -1,0 +1,72 @@
+@import 'tailwindcss';
+
+/*
+  SOJOURNER prototype theme.
+
+  Palette is deliberately muted and neutral. This is a decision-support demonstration,
+  not an operational display, so nothing here uses colours that imply a real tactical
+  situation. Risk is always shown as a numeric value and a band, never as a colour alone.
+*/
+@theme {
+  --color-surface: #0b1120;
+  --color-surface-raised: #111c33;
+  --color-surface-sunken: #070c17;
+  --color-edge: #1e293b;
+  --color-edge-strong: #334155;
+  --color-ink: #e2e8f0;
+  --color-ink-muted: #94a3b8;
+  --color-ink-faint: #64748b;
+  --color-accent: #38bdf8;
+  --color-accent-dim: #0e7490;
+  --color-caution: #fbbf24;
+  --color-caution-dim: #92400e;
+  --color-advisory: #a78bfa;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'tnum' 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The safety labels must never be the quietest thing on screen. */
+.safety-banner {
+  background: repeating-linear-gradient(
+    45deg,
+    rgb(146 64 14 / 0.16),
+    rgb(146 64 14 / 0.16) 12px,
+    rgb(146 64 14 / 0.08) 12px,
+    rgb(146 64 14 / 0.08) 24px
+  );
+  border-color: rgb(251 191 36 / 0.45);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scrollbars: keep them visible enough to signal there is more content. */
+* {
+  scrollbar-color: #334155 transparent;
+  scrollbar-width: thin;
+}
+
+@keyframes sojourner-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.live-dot {
+  animation: sojourner-pulse 1.8s ease-in-out infinite;
+}

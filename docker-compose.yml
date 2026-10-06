@@ -1,0 +1,61 @@
+# SOJOURNER — one-command offline demonstration stack.
+#
+#   docker compose up --build
+#
+# Then open http://localhost:8080. The frontend is served by nginx on 8080 and reverse
+# proxies /api and /ws to the backend on 8000, so the browser sees a single origin.
+#
+# No network access is needed after the first build. There are no external services, no
+# API keys, and no calls out of the container at runtime.
+
+name: sojourner
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: sojourner-backend:0.1.0
+    environment:
+      # The volume below is mounted at /data; the four slashes make the path absolute
+      # inside the container rather than relative to the working directory.
+      SOJOURNER_DATABASE_URL: sqlite:////data/sojourner.db
+      SOJOURNER_DEFAULT_SEED: "20260101"
+      # Hard budget per CP-SAT solve, per option. This is a wall-clock ceiling, not a
+      # performance target; see docs/LIMITATIONS.md for measured figures.
+      SOJOURNER_SOLVER_TIME_LIMIT_SECONDS: "8"
+      SOJOURNER_GREEDY_FALLBACK: "true"
+      # Same-origin in production, so no CORS origins are needed. The Vite dev server
+      # origins are listed anyway so a locally-run `make dev` works against this backend.
+      SOJOURNER_CORS_ORIGINS: "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080,http://127.0.0.1:8080"
+    volumes:
+      # A named volume keeps the ledger and plan history across `docker compose down`.
+      # Remove it with `docker compose down -v` to start from a clean scenario.
+      - sojourner-data:/data
+    ports:
+      # Published so the API is reachable directly for curl-based demos. Remove this
+      # mapping to expose only the frontend port.
+      - "8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: sojourner-frontend:0.1.0
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  sojourner-data:
+    driver: local
